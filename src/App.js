@@ -2,6 +2,7 @@ import './App.css';
 import React, { useState } from 'react';
 import TodoForm from './components/TodoForm';
 import Todos from './components/Todos';
+import { todoOperations } from './common/constants';
 
 
 function App() {
@@ -12,22 +13,54 @@ function App() {
                                     {id: 4, title: 'Go for a walk', isDone: false}
                                   ]);
 
-  const onTodoDoneUndone = (doneUndoneTodo) =>{
-    const todo = todoList.find(x => x.id === doneUndoneTodo?.id);
-    todo.isDone = !todo?.isDone;
+  const [todo, setTodo] = useState({});
 
+  
+
+  const onTodoChange = (doneUndoneTodo, changeOperation) =>{
+    const todo = todoList.find(x => x.id === doneUndoneTodo?.id);
+    todoOperationWiseMap[changeOperation](todo);
+    
+  }
+  
+  const onTodoDoneUndone = (todo) =>{
+    todo.isDone = !todo?.isDone;
     setTodoList([...todoList]);
-  }                              
-  const onNewTodoSubmit = (newTodoItem) =>{
-    setTodoList((prevTodoList) => [...prevTodoList, {id: prevTodoList.length +1, ...newTodoItem}]);
+  }
+
+  const onDeleteTodo = (todo) =>{
+    const newTodos = todoList.filter(x => x.id !== todo?.id);
+    setTodoList([...newTodos]);
+  }
+
+  const onEditTodo = (todo) =>{
+    setTodo(todo);
+  }
+  const onNewTodoSubmit = (newTodoItem, operationType) =>{
+    if(operationType === todoOperations.Add){
+      setTodoList((prevTodoList) => [...prevTodoList, {id: prevTodoList.length +1, ...newTodoItem}]);
+    }else if (operationType === todoOperations.Update){
+      const todoToUpdate = todoList.find(x => x.id === newTodoItem.id);
+
+      todoToUpdate.title = newTodoItem.title;
+
+      setTodoList([...todoList]);
+    }
+  }
+
+  const todoOperationWiseMap = {
+    DoneUndone : onTodoDoneUndone,
+    Add: onNewTodoSubmit,
+    Delete: onDeleteTodo,
+    Edit: onEditTodo,
   }
 
   return (
     <div className="App">
       <h1>TO DO APP LOADING</h1>
-      <TodoForm onNewTodoSubmit={onNewTodoSubmit} /> 
+      <TodoForm todo={todo} onNewTodoSubmit={onNewTodoSubmit} /> 
       <hr/>
-      <Todos todoList={todoList} onTodoDoneUndone={onTodoDoneUndone}/>
+      <Todos todoList={todoList} onTodoChange={onTodoChange}/>
 
     </div>
   );
